@@ -1,0 +1,8 @@
+.venv/
+.env
+__pycache__/
+*.log
+data/real_world/results*.json
+weights_nb/
+_*.jpg
+sid

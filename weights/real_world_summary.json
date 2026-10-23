@@ -1,0 +1,29 @@
+{
+ "source": "29 scored single-item photos from Wikimedia Commons (open licences), plus 4 unscored mixed scenes",
+ "cnn_alone_in_scope": [
+  12,
+  19
+ ],
+ "agent_in_scope": [
+  16,
+  19
+ ],
+ "agent_out_of_scope": [
+  8,
+  10
+ ],
+ "agent_all": [
+  24,
+  29
+ ],
+ "hazardous": {
+  "identified": 5,
+  "total": 5,
+  "strict_correct": 3
+ },
+ "notes": [
+  "No textile photos: every web match was wrong, so textile is untested.",
+  "Strict scoring: a photo counts only if every detected item gets the true category.",
+  "Small set, so percentages are rough."
+ ]
+}

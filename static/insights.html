@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waste Agent: Insights</title>
+<style>
+@font-face { font-family: 'Bricolage Grotesque'; font-weight: 400 800; font-display: swap; src: url(/static/fonts/bricolage-grotesque-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 400 700; font-display: swap; src: url(/static/fonts/instrument-sans-latin.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; font-display: swap; src: url(/static/fonts/jetbrains-mono-latin.woff2) format('woff2'); }
+body { margin: 0; }
+.wa { --onc:#12110E; --bg:#12110E; --bg2:#1A1913; --card:#1F1E18; --card2:#28261F; --line:rgba(244,238,224,.13); --line2:rgba(244,238,224,.27); --ink:#F4EEE0; --ink2:#BAB3A2; --ink3:#948E7C; --btn:#D3F24B; --onbtn:#171600; --fill:#D3F24B; --ov:#D3F24B; --warn:#FF8F45;
+  --cardboard:#E0A566; --glass:#5FD6C6; --metal:#A3B9D6; --paper:#F4D95E; --plastic:#6AA2FF; --trash:#ABA69B;
+  background: var(--bg); color: var(--ink); font-family: 'Instrument Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+.wa.light { --onc:#FFFFFF; --bg:#EEE9D9; --bg2:#E6E0CC; --card:#FAF7EE; --card2:#F2EDDE; --line:rgba(27,26,21,.14); --line2:rgba(27,26,21,.32); --ink:#1B1A15; --ink2:#55513F; --ink3:#6D6853; --btn:#1B1A15; --onbtn:#D3F24B; --fill:#6E8C00; --ov:#4F6500; --warn:#A53D07;
+  --cardboard:#8C4F16; --glass:#086A5F; --metal:#3F5F86; --paper:#7A5E00; --plastic:#1F5FD1; --trash:#5B574E; }
+.wa * { box-sizing: border-box; }
+.disp { font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.kick { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+header { border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 12px; }
+.ghost { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid var(--line2); color: var(--ink); text-decoration: none; font-size: 14.5px; font-weight: 550; }
+.ghost:hover { background: var(--card2); }
+.wa :focus-visible { outline: 2.5px solid var(--btn); outline-offset: 3px; }
+h1 { font-size: clamp(40px, 7vw, 64px); line-height: 1; letter-spacing: -.035em; margin: 10px 0 14px; font-weight: 700; }
+h2 { font-size: 28px; letter-spacing: -.025em; margin: 0; font-weight: 700; }
+.mark { background: var(--btn); color: var(--onbtn); padding: 0 .14em .04em; border-radius: .16em; display: inline-block; transform: rotate(-1.6deg); }
+.lead { color: var(--ink2); font-size: 17px; max-width: 640px; margin: 0; }
+section { margin-top: 56px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-top: 22px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
+.big { font-size: 46px; font-weight: 700; letter-spacing: -.035em; line-height: 1; margin-top: 8px; }
+.sub { font-size: 13.5px; color: var(--ink2); margin-top: 8px; }
+.bar { height: 12px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 6px; width: 0; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th { text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); font-weight: 500; padding: 8px 10px 8px 0; }
+td { padding: 11px 10px 11px 0; border-top: 1px dashed var(--line2); font-size: 14.5px; vertical-align: middle; }
+.tagc { display: inline-flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+.cmp { display: flex; flex-direction: column; gap: 18px; margin-top: 8px; }
+.cmp .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14.5px; color: var(--ink2); margin-bottom: 8px; }
+.cmp .top b { font-size: 26px; color: var(--ink); letter-spacing: -.02em; }
+.flow { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); counter-reset: s; margin-top: 22px; }
+.flow .step { position: relative; }
+.flow .step::before { counter-increment: s; content: counter(s); position: absolute; top: -12px; left: 18px; width: 26px; height: 26px; border-radius: 50%; background: var(--btn); color: var(--onbtn); display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; }
+.step b { display: block; font-size: 17px; margin-top: 6px; }
+.step p { margin: 6px 0 0; font-size: 14px; color: var(--ink2); }
+ul.lim { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+ul.lim li { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px dashed var(--line2); border-radius: 16px; font-size: 15px; color: var(--ink2); }
+ul.lim li::before { content: '!'; flex: none; width: 22px; height: 22px; border-radius: 7px; background: color-mix(in srgb, var(--warn) 25%, transparent); color: var(--warn); display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; }
+img.cm { width: 100%; max-width: 460px; border-radius: 16px; background: #fff; display: block; }
+.cols { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-top: 22px; align-items: start; }
+footer { margin: 64px 0 40px; font-size: 13px; color: var(--ink3); }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body class="wa" id="root">
+<header><div class="wrap">
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg viewBox="0 0 36 36" width="36" height="36" aria-hidden="true" style="fill:none;stroke:#171600;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><rect width="36" height="36" rx="11" style="fill:#D3F24B;stroke:none"></rect><path d="M9.5 13.5h17"></path><path d="M14.5 13.5v-2a1.6 1.6 0 0 1 1.6-1.6h3.8a1.6 1.6 0 0 1 1.6 1.6v2"></path><path d="M11.2 13.5l1.2 11.6a2 2 0 0 0 2 1.8h7.2a2 2 0 0 0 2-1.8l1.2-11.6"></path><path d="M18 17.4v5.6M15.4 20.6l2.6 2.6 2.6-2.6"></path></svg>
+    <span class="disp" style="font-weight:700;font-size:20px;letter-spacing:-.015em">Waste Agent</span>
+  </div>
+  <a class="ghost" href="/">&larr; Back to chat</a>
+</div></header>
+
+<main class="wrap">
+  <section style="margin-top:44px">
+    <div class="kick">Insights / how well does it work</div>
+    <h1 class="disp">Numbers, <span class="mark">not promises.</span></h1>
+    <p class="lead">Everything below comes from runs on a held-out test set and on photos from outside the training dataset. Where the numbers are weaker, they are shown as they are.</p>
+    <div class="grid" id="hero"></div>
+  </section>
+
+  <section>
+    <div class="kick">01 / Dataset vs real world</div>
+    <h2 class="disp" style="margin-top:6px">The classifier alone drops. The agent recovers.</h2>
+    <p class="lead" style="margin-top:10px">The ResNet50 was trained on clean single-item photos. On cluttered web photos it falls sharply; the agent's second look (Gemini) wins most of that back.</p>
+    <div class="card" style="margin-top:22px"><div class="cmp" id="cmp"></div><div class="sub" id="rwnote"></div></div>
+  </section>
+
+  <section>
+    <div class="kick">02 / Per-class results</div>
+    <h2 class="disp" style="margin-top:6px">Which materials it knows best</h2>
+    <div class="cols">
+      <div class="card"><div class="kick" id="pc-title"></div><table id="pc"></table></div>
+      <div class="card"><div class="kick">Test confusion matrix (local run)</div><img class="cm" src="/api/confusion-matrix.png" alt="Confusion matrix on the held-out test set" style="margin-top:12px"><div class="sub">Rows are the true class, columns the prediction. The off-diagonal cells are the mistakes.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kick">03 / Training</div>
+    <h2 class="disp" style="margin-top:6px">How the model learned</h2>
+    <div class="card" style="margin-top:22px"><svg id="curve" viewBox="0 0 640 220" width="100%" role="img" aria-label="Training curves"></svg><div class="sub" id="curvenote"></div></div>
+  </section>
+
+  <section>
+    <div class="kick">04 / Architecture</div>
+    <h2 class="disp" style="margin-top:6px">What happens to your photo</h2>
+    <div class="flow">
+      <div class="card step"><b>Detect</b><p>Gemini vision finds each item and draws a box.</p></div>
+      <div class="card step"><b>Classify</b><p>Each crop goes through the trained ResNet50 (with a Grad-CAM heatmap).</p></div>
+      <div class="card step"><b>Verify</b><p>Gemini checks the CNN against the photo and overrides it when it disagrees.</p></div>
+      <div class="card step"><b>Advise</b><p>A knowledge base gives the bin, the steps and the safety warnings.</p></div>
+      <div class="card step"><b>Optimize</b><p>Plain code compares &ldquo;as-is&rdquo; with &ldquo;after prep&rdquo;: recovered share and CO&#8322;.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kick">05 / Limits</div>
+    <h2 class="disp" style="margin-top:6px">What to keep in mind</h2>
+    <ul class="lim">
+      <li>The CNN was trained on about 2.5k clean photos from one dataset, so cluttered real-world photos score lower.</li>
+      <li>Item names, boxes and the final check depend on the Gemini API, which has daily limits on the free tier.</li>
+      <li>CO&#8322; and recovery figures use typical item weights and simple contamination rules: estimates, not measurements.</li>
+      <li>Hazardous items were checked on only a handful of photos, and textiles on none.</li>
+      <li>Disposal advice is general. Local rules differ, so check your own council or hazardous-waste service.</li>
+    </ul>
+  </section>
+
+  <footer>Real-world photos are openly licensed images from Wikimedia Commons (sources in data/real_world/SOURCES.csv). Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (SIL OFL).</footer>
+</main>
+
+<script>
+const mq = matchMedia('(prefers-color-scheme: light)');
+const theme = () => document.getElementById('root').classList.toggle('light', mq.matches); theme(); mq.addEventListener('change', theme);
+const pct = x => (x * 100).toFixed(1).replace(/\.0$/, '') + '%', r0 = x => Math.round(x * 100) + '%';
+const COL = { cardboard: 'var(--cardboard)', glass: 'var(--glass)', metal: 'var(--metal)', paper: 'var(--paper)', plastic: 'var(--plastic)', trash: 'var(--trash)' };
+const $ = id => document.getElementById(id);
+
+fetch('/api/insights').then(r => r.json()).then(d => {
+  const colab = d.colab, local = d.local, rw = d.real_world;
+  const ratio = ([a, b]) => a / b;
+  $('hero').innerHTML = [
+    ['Test accuracy', pct(colab.test_acc), `${colab.test_images} held-out photos, Colab run`],
+    ['Same code, local GPU', pct(local.test_acc), `${local.split.test} test photos. Differences come from hardware and random augmentation.`],
+    ['Agent on web photos', r0(ratio(rw.agent_all)), `${rw.agent_all[0]} of ${rw.agent_all[1]} correct, strict scoring`],
+    ['Hazardous items', `${rw.hazardous.identified}/${rw.hazardous.total}`, 'identified (a smoke test, not an accuracy figure)']
+  ].map(([k, v, s]) => `<div class="card"><div class="kick">${k}</div><div class="big disp">${v}</div><div class="sub">${s}</div></div>`).join('');
+
+  const rows = [
+    ['ResNet50 on dataset test photos', colab.test_acc, 'var(--ink3)'],
+    ['ResNet50 alone on web photos (its own 6 classes)', ratio(rw.cnn_alone_in_scope), 'var(--warn)'],
+    ['Full agent on the same web photos', ratio(rw.agent_in_scope), 'var(--fill)'],
+    ['Full agent on items the CNN never learned (battery, e-waste, food)', ratio(rw.agent_out_of_scope), 'var(--fill)']
+  ];
+  $('cmp').innerHTML = rows.map(([l, v, c]) => `<div><div class="top"><span>${l}</span><b class="disp">${r0(v)}</b></div><div class="bar"><i data-w="${v * 100}" style="background:${c}"></i></div></div>`).join('');
+  $('rwnote').textContent = rw.source + '. ' + rw.notes.join(' ');
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll('.bar i').forEach(i => i.style.width = i.dataset.w + '%')));
+
+  $('pc-title').textContent = 'Colab run, ' + colab.test_images + ' test photos';
+  $('pc').innerHTML = '<tr><th>Class</th><th>Precision</th><th>Recall</th><th>Photos</th></tr>' + Object.entries(colab.per_class).map(([c, [p, r, n]]) =>
+    `<tr><td><span class="tagc" style="color:${COL[c]}"><span class="dot" style="background:${COL[c]}"></span>${c}</span></td><td>${p.toFixed(2)}</td><td>${r.toFixed(2)}</td><td>${n}</td></tr>`).join('');
+
+  const h = local.history; if (h && h.length) {
+    const W = 640, H = 220, L = 40, B = 24, n = h.length, maxL = Math.max(...h.map(e => Math.max(e.train_loss, e.val_loss)), 0.1);
+    const x = i => L + (W - L - 10) * (n === 1 ? 0.5 : i / (n - 1)), yA = v => 10 + (H - B - 10) * (1 - v), yL = v => 10 + (H - B - 10) * (1 - v / maxL);
+    const line = (f, key, col) => `<polyline fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" points="${h.map((e, i) => x(i) + ',' + f(e[key])).join(' ')}"/>`;
+    $('curve').innerHTML = `<g stroke="currentColor" stroke-opacity=".15">${[0, .25, .5, .75, 1].map(t => `<line x1="${L}" x2="${W - 10}" y1="${10 + (H - B - 10) * t}" y2="${10 + (H - B - 10) * t}"/>`).join('')}</g>`
+      + line(yL, 'train_loss', 'var(--ink3)') + line(yL, 'val_loss', 'var(--warn)') + line(yA, 'val_acc', 'var(--fill)')
+      + `<text x="${L}" y="${H - 6}" fill="currentColor" fill-opacity=".6" font-size="11" font-family="JetBrains Mono">epoch 1</text><text x="${W - 60}" y="${H - 6}" fill="currentColor" fill-opacity=".6" font-size="11" font-family="JetBrains Mono">epoch ${n}</text>`;
+    $('curvenote').innerHTML = '<span style="color:var(--fill)">&#9632;</span> validation accuracy &nbsp; <span style="color:var(--ink3)">&#9632;</span> training loss &nbsp; <span style="color:var(--warn)">&#9632;</span> validation loss &nbsp; (local run, best validation accuracy ' + pct(local.best_val_acc) + ')';
+  }
+}).catch(() => { $('hero').innerHTML = '<div class="card">Could not load the results.</div>'; });
+</script>
+</body>
+</html>

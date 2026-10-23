@@ -1,0 +1,9 @@
+.venv
+.env
+.git
+data
+notebooks
+*.log
+__pycache__
+weights_nb
+PROJECT_JOURNEY.md

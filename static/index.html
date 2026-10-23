@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waste Agent</title>
+<style>
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/static/fonts/bricolage-grotesque-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/static/fonts/instrument-sans-latin.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/static/fonts/jetbrains-mono-latin.woff2) format('woff2'); }
+
+body { margin: 0; }
+.wa { --b-cardboard:#E0A566; --b-glass:#5FD6C6; --b-metal:#A3B9D6; --b-paper:#F4D95E; --b-plastic:#6AA2FF; --b-trash:#ABA69B; --b-organic:#82D771; --b-battery:#FF8F45; --b-ewaste:#B994FF; --b-textile:#FF80BB; --b-hazard:#FF6363;
+  --cardboard:var(--b-cardboard); --glass:var(--b-glass); --metal:var(--b-metal); --paper:var(--b-paper); --plastic:var(--b-plastic); --trash:var(--b-trash); --organic:var(--b-organic); --battery:var(--b-battery); --ewaste:var(--b-ewaste); --textile:var(--b-textile); --hazard:var(--b-hazard);
+  --onc:#12110E; --bg:#12110E; --bg2:#1A1913; --card:#1F1E18; --card2:#28261F; --line:rgba(244,238,224,.13); --line2:rgba(244,238,224,.27); --ink:#F4EEE0; --ink2:#BAB3A2; --ink3:#948E7C; --btn:#D3F24B; --onbtn:#171600; --fill:#D3F24B; --ov:#D3F24B; }
+.wa.light { --cardboard:#8C4F16; --glass:#086A5F; --metal:#3F5F86; --paper:#7A5E00; --plastic:#1F5FD1; --trash:#5B574E; --organic:#276B2B; --battery:#A53D07; --ewaste:#6B3FD1; --textile:#C21F6E; --hazard:#C4161C;
+  --onc:#FFFFFF; --bg:#EEE9D9; --bg2:#E6E0CC; --card:#FAF7EE; --card2:#F2EDDE; --line:rgba(27,26,21,.14); --line2:rgba(27,26,21,.32); --ink:#1B1A15; --ink2:#55513F; --ink3:#6D6853; --btn:#1B1A15; --onbtn:#D3F24B; --fill:#6E8C00; --ov:#4F6500; }
+.wa { background: var(--bg); color: var(--ink); font-family: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+.wa * { box-sizing: border-box; }
+.wa button, .wa input { font-family: inherit; }
+#app { container-type: inline-size; container-name: wa; display: flex; flex-direction: column; min-height: 100vh; }
+.disp { font-family: 'Bricolage Grotesque', 'Instrument Sans', system-ui, sans-serif; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:48px; padding:0 20px; border-radius:14px; border:0; background:var(--btn); color:var(--onbtn); font-size:15px; font-weight:650; cursor:pointer; white-space:nowrap; }
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 16px; border-radius:14px; border:1px solid var(--line2); background:transparent; color:var(--ink); font-size:14.5px; font-weight:550; cursor:pointer; white-space:nowrap; }
+.ghost:hover { background: var(--card2); }
+.icon { width:44px; padding:0; flex:none; }
+.chip { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:6px 16px; border-radius:999px; border:1px solid var(--line2); background:var(--card); color:var(--ink); font-size:14.5px; font-weight:500; cursor:pointer; text-align:left; }
+.chip:hover { border-color: var(--btn); }
+.chip.pri { background:var(--btn); color:var(--onbtn); border-color:transparent; font-weight:650; }
+.wa :focus-visible { outline: 2.5px solid var(--btn); outline-offset: 3px; }
+.composer:focus-within { border-color: var(--btn); box-shadow: 0 0 0 4px color-mix(in srgb, var(--btn) 22%, transparent); }
+.composer input:focus-visible { outline: none; }
+.tag { display:inline-flex; align-items:center; gap:7px; height:26px; padding:0 10px; border-radius:8px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--c); background:color-mix(in srgb,var(--c) 15%,var(--card)); border:1px solid color-mix(in srgb,var(--c) 40%,transparent); white-space:nowrap; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--c); flex:none; }
+.num { width:28px; height:28px; border-radius:50%; background:var(--c); color:var(--onc); display:inline-grid; place-items:center; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; font-weight:700; flex:none; }
+.ovp { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ov); background:color-mix(in srgb,var(--fill) 16%,transparent); border:1px solid color-mix(in srgb,var(--fill) 55%,transparent); white-space:nowrap; }
+.pill { display:inline-flex; align-items:center; gap:8px; height:26px; padding:0 10px; border-radius:8px; font-size:12.5px; font-weight:500; color:var(--ink2); border:1px solid var(--line2); white-space:nowrap; }
+.kick { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); }
+.lab { font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); margin-bottom:4px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:26px; padding:22px; display:flex; flex-direction:column; gap:16px; }
+.mark { display:inline-block; background:var(--btn); color:var(--onbtn); padding:0 .14em .04em; border-radius:.16em; transform:rotate(-1.6deg); }
+.cell { flex:1; height:24px; border-radius:5px; animation: cellIn .5s cubic-bezier(.2,.8,.2,1) both; }
+.dotb { width:8px; height:8px; border-radius:50%; background:var(--btn); animation: bob 1s ease-in-out infinite; }
+.pulse { animation: pulse 1.8s ease-in-out infinite; }
+.scanline { animation: scan 4.5s ease-in-out infinite; }
+.br { position:absolute; width:28px; height:28px; border:3px solid var(--btn); }
+.mobonly { display: none !important; }
+@keyframes bob { 0%,80%,100% { transform:translateY(0); opacity:.45; } 40% { transform:translateY(-6px); opacity:1; } }
+@keyframes cellIn { from { opacity:0; transform:scaleY(.3); } to { opacity:var(--o,1); transform:none; } }
+@keyframes scan { 0%,100% { top:16%; } 50% { top:80%; } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+@media (prefers-reduced-motion: reduce) { .cell, .dotb, .pulse, .scanline { animation: none !important; } }
+
+.pad { padding-left: 32px; padding-right: 32px; }
+.prose p { margin: 0; font-size: 17px; color: var(--ink2); }
+.prose p + p, .prose p + ol, .prose p + ul, .prose ol + p, .prose ul + p { margin-top: 12px; }
+.prose ol, .prose ul { margin: 6px 0 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: 10px; font-size: 16.5px; }
+.prose li.sub { margin-left: 1rem; list-style-type: circle; }
+.prose strong { color: var(--ink); }
+.prose h4 { margin: 14px 0 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; letter-spacing: -.01em; color: var(--ink); }
+.prose hr { border: 0; border-top: 1px dashed var(--line2); margin: 14px 0; }
+.prose code { background: var(--card2); padding: 0 .3em; border-radius: 5px; }
+.maplink { font-size: 13px; font-weight: 600; color: var(--ov); text-decoration: underline; text-underline-offset: 3px; }
+.trail { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.trail li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--ink2); }
+.trail .mk { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line2); display: grid; place-items: center; flex: none; }
+.trail li.done .mk { background: var(--btn); border-color: transparent; color: var(--onbtn); }
+.trail li.run .mk::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--btn); animation: pulse 1s ease-in-out infinite; }
+.trail li.done { color: var(--ink); }
+.trail .det { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink3); }
+.bubble { background: var(--card); border: 1px solid var(--line); border-radius: 6px 22px 22px 22px; padding: 16px 20px; }
+
+#veil { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 28px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+#veil.on { display: flex; }
+
+@container wa (max-width: 680px) {
+  .pad { padding-left: 16px !important; padding-right: 16px !important; }
+  .h1 { font-size: 46px !important; }
+  .h2 { font-size: 27px !important; }
+  .mobonly { display: inline-flex !important; }
+  .deskonly { display: none !important; }
+  .lbl-hide { display: none !important; }
+  .hero-pt { padding-top: 24px !important; }
+  .dz { min-height: 260px !important; }
+  .chiprow { flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 6px; }
+  .chiprow .chip { flex: none; }
+}
+</style>
+</head>
+<body class="wa" id="root">
+<div id="app">
+  <div aria-hidden="true" id="strip" style="display:flex;height:6px;flex:none"></div>
+
+  <header class="pad" style="display:flex;align-items:center;justify-content:space-between;gap:12px;height:68px;padding:0 32px;border-bottom:1px solid var(--line);flex:none">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <svg class="ic" viewBox="0 0 36 36" width="36" height="36" aria-hidden="true" style="color:#171600;stroke-width:2.2"><rect x="0" y="0" width="36" height="36" rx="11" style="fill:#D3F24B;stroke:none"></rect><path d="M9.5 13.5h17"></path><path d="M14.5 13.5v-2a1.6 1.6 0 0 1 1.6-1.6h3.8a1.6 1.6 0 0 1 1.6 1.6v2"></path><path d="M11.2 13.5l1.2 11.6a2 2 0 0 0 2 1.8h7.2a2 2 0 0 0 2-1.8l1.2-11.6"></path><path d="M18 17.4v5.6M15.4 20.6l2.6 2.6 2.6-2.6"></path></svg>
+      <div style="display:flex;flex-direction:column;line-height:1.1;min-width:0">
+        <span class="disp" style="font-weight:700;font-size:20px;letter-spacing:-.015em;white-space:nowrap">Waste Agent</span>
+        <span class="mono deskonly" style="font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-top:5px">sort it right, waste less</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a class="ghost" href="/insights" style="text-decoration:none">Insights</a>
+      <button class="ghost" id="reset" type="button" aria-label="New chat"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="lbl-hide">New chat</span></button>
+    </div>
+  </header>
+
+  <div id="stats" class="pad" style="display:none;padding-top:10px;padding-bottom:10px;border-bottom:1px solid var(--line);background:var(--bg2);flex:none">
+    <div class="mono" style="max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)">
+      <span>This session</span><span><b id="s-items" style="color:var(--ink);font-size:15px">0</b> items sorted</span>
+      <span><b id="s-co2" style="color:var(--ink);font-size:15px">0</b> kg CO₂ avoided (est.)</span>
+      <span><b id="s-rec" style="color:var(--ink);font-size:15px">0%</b> recovered after prep</span>
+    </div>
+  </div>
+
+  <main id="main" class="pad" style="flex:1;display:flex;flex-direction:column;align-items:center;padding-top:44px;padding-bottom:28px">
+    <section id="hero" style="width:100%;max-width:1040px;display:flex;flex-direction:column;gap:30px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px 48px;align-items:stretch">
+        <div style="flex:1 1 440px;min-width:0;display:flex;flex-direction:column;gap:20px;justify-content:center">
+          <div class="kick" style="display:flex;align-items:center;gap:10px"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:var(--btn)"></span>Waste-sorting agent</div>
+          <h1 class="disp h1" style="margin:0;font-size:70px;line-height:.98;letter-spacing:-.04em;font-weight:700">Snap it.<br>Sort it.<br><span class="mark">Waste less.</span></h1>
+          <p style="margin:0;font-size:17px;line-height:1.55;color:var(--ink2);max-width:470px">Hi! I'm your waste-sorting assistant. <b style="color:var(--ink)">Upload a photo</b> of the waste you want to sort (press Photo, drop a picture here, or paste one) and I'll tell you what it is, which bin it goes in, and how to dispose of it with the least harm to the environment.</p>
+        </div>
+        <div class="dz" id="dz" role="button" tabindex="0" aria-label="Choose a photo to sort" style="cursor:pointer;flex:1 1 440px;min-width:0;min-height:410px;position:relative;border-radius:30px;background:var(--card);border:1.5px dashed var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;text-align:center;overflow:hidden">
+          <span class="br" aria-hidden="true" style="top:16px;left:16px;border-right:0;border-bottom:0;border-top-left-radius:12px"></span>
+          <span class="br" aria-hidden="true" style="top:16px;right:16px;border-left:0;border-bottom:0;border-top-right-radius:12px"></span>
+          <span class="br" aria-hidden="true" style="bottom:16px;left:16px;border-right:0;border-top:0;border-bottom-left-radius:12px"></span>
+          <span class="br" aria-hidden="true" style="bottom:16px;right:16px;border-left:0;border-top:0;border-bottom-right-radius:12px"></span>
+          <span class="scanline" aria-hidden="true" style="position:absolute;left:28px;right:28px;top:16%;height:2px;border-radius:2px;background:var(--btn);opacity:.55"></span>
+          <span class="tag deskonly" aria-hidden="true" style="--c:var(--plastic);position:absolute;top:52px;left:40px;opacity:.85"><span class="dot"></span>Plastic</span>
+          <span class="tag deskonly" aria-hidden="true" style="--c:var(--cardboard);position:absolute;bottom:56px;left:48px;opacity:.85"><span class="dot"></span>Cardboard</span>
+          <span class="tag deskonly" aria-hidden="true" style="--c:var(--battery);position:absolute;top:96px;right:40px;opacity:.85"><span class="dot"></span>Battery</span>
+          <span style="width:76px;height:76px;border-radius:50%;background:var(--btn);color:var(--onbtn);display:grid;place-items:center;position:relative">
+            <svg class="ic" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" style="stroke-width:1.7"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"></path><circle cx="12" cy="13" r="3.6"></circle></svg>
+          </span>
+          <div style="position:relative">
+            <div class="disp" style="font-size:28px;font-weight:650;letter-spacing:-.02em;line-height:1.1">Drop a photo here</div>
+            <div style="margin-top:8px;color:var(--ink2);font-size:15px">Click to choose a photo, or paste one. Several items in one photo are fine.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="kick">Or just ask</div>
+        <div class="chiprow" id="heroChips" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+      </div>
+      <div class="deskonly" style="display:flex;flex-direction:column;gap:12px;padding-top:22px;border-top:1px solid var(--line)">
+        <div class="kick">The 11 bins I know</div>
+        <div id="allbins" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
+    </section>
+
+    <section id="chat" aria-live="polite" style="display:none;width:100%;max-width:900px;flex-direction:column;gap:34px"></section>
+  </main>
+
+  <div class="pad" style="padding-bottom:22px;width:100%;display:flex;justify-content:center;flex:none;margin-top:auto;position:sticky;bottom:0;background:linear-gradient(to top,var(--bg) 72%,transparent);padding-top:14px">
+    <div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:10px">
+      <div class="composer" style="background:var(--card);border:1px solid var(--line2);border-radius:26px;padding:10px;display:flex;flex-direction:column;gap:10px">
+        <div id="attach" style="display:none;align-items:center;gap:12px;padding:4px 4px 10px;border-bottom:1px dashed var(--line2)">
+          <img id="pimg" alt="" style="width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;background:#2b2923">
+          <div style="min-width:0;flex:1">
+            <div id="pname" style="font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+            <div class="mono" style="font-size:12px;color:var(--ink3)">Attached · ready to sort</div>
+          </div>
+          <button class="ghost icon" id="premove" type="button" aria-label="Remove photo"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        </div>
+        <form id="form" style="display:flex;align-items:center;gap:8px">
+          <label class="ghost" for="file" style="cursor:pointer" aria-label="Add a photo"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M3 17l5-4.5 4 3.5 3-2.5 6 5"></path></svg><span class="lbl-hide">Photo</span></label>
+          <input type="file" id="file" accept="image/*" hidden>
+          <input type="text" id="text" placeholder="Type a message, drop or paste a photo" aria-label="Message" autocomplete="off" style="flex:1;min-width:0;height:48px;background:transparent;border:0;color:var(--ink);font-size:16px;padding:0 8px">
+          <button class="btn" id="send" aria-label="Send"><span class="lbl-hide">Send</span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+        </form>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:8px;font-size:12.5px;color:var(--ink3);text-align:center"><svg class="ic" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg><span>General guidance. Rules vary by area, so check your local rules. Photos are analyzed with Google Gemini.</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="veil" aria-hidden="true">
+  <div style="position:relative;width:100%;height:100%;border:3px dashed var(--btn);border-radius:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center">
+    <span class="br" style="top:26px;left:26px;border-right:0;border-bottom:0;border-top-left-radius:16px;width:44px;height:44px"></span>
+    <span class="br" style="top:26px;right:26px;border-left:0;border-bottom:0;border-top-right-radius:16px;width:44px;height:44px"></span>
+    <span class="br" style="bottom:26px;left:26px;border-right:0;border-top:0;border-bottom-left-radius:16px;width:44px;height:44px"></span>
+    <span class="br" style="bottom:26px;right:26px;border-left:0;border-top:0;border-bottom-right-radius:16px;width:44px;height:44px"></span>
+    <span style="width:104px;height:104px;border-radius:50%;background:var(--btn);color:var(--onbtn);display:grid;place-items:center"><svg class="ic" viewBox="0 0 24 24" width="44" height="44" aria-hidden="true" style="stroke-width:1.6"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"></path><circle cx="12" cy="13" r="3.6"></circle></svg></span>
+    <div class="disp h1" style="font-size:52px;font-weight:700;letter-spacing:-.035em;line-height:1">Drop your photo to <span class="mark">sort it</span></div>
+    <div class="mono" style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)">Release to upload</div>
+  </div>
+</div>
+
+<script>
+const CATS = [['cardboard','Cardboard','cardboard'],['glass','Glass','glass'],['metal','Metal','metal'],['paper','Paper','paper'],['plastic','Plastic','plastic'],
+              ['trash','Trash','trash'],['organic','Organic','organic'],['battery','Battery','battery'],['e-waste','E-waste','ewaste'],['textile','Textile','textile'],['hazardous','Hazardous','hazard']];
+const KEY = Object.fromEntries(CATS.map(c => [c[0], c[2]])), NAME = Object.fromEntries(CATS.map(c => [c[0], c[1]]));
+const k = c => KEY[c] || 'trash', nm = c => NAME[c] || c;
+const $ = id => document.getElementById(id);
+const root = $('root'), chat = $('chat'), hero = $('hero'), text = $('text'), send = $('send');
+const fileIn = $('file');
+let sessionId = '', pending = null, busy = false, last = null;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, '$1<em>$2</em>').replace(/`(.+?)`/g, '<code>$1</code>');
+function md(src) {
+  const out = []; let list = null; const close = () => { if (list) { out.push('</' + list + '>'); list = null; } };
+  for (const raw of String(src).split('\n')) {
+    const line = raw.replace(/\s+$/, ''), indent = raw.match(/^\s*/)[0].length; let m;
+    if (!line.trim()) { close(); continue; }
+    if ((m = line.match(/^\s*#{1,4}\s+(.*)/))) { close(); out.push('<h4>' + inline(m[1]) + '</h4>'); }
+    else if (/^\s*-{3,}\s*$/.test(line)) { close(); out.push('<hr>'); }
+    else if ((m = line.match(/^\s*\d+\.\s+(.*)/))) { if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; } out.push('<li>' + inline(m[1]) + '</li>'); }
+    else if ((m = line.match(/^\s*[*-]\s+(.*)/))) { if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; } out.push('<li' + (indent >= 4 ? ' class="sub"' : '') + '>' + inline(m[1]) + '</li>'); }
+    else { close(); out.push('<p>' + inline(line) + '</p>'); }
+  }
+  close(); return out.join('');
+}
+const svg = (path, size = 18, extra = '') => `<svg class="ic" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true" ${extra}>${path}</svg>`;
+const I = {
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"></path>', info: '<circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path>',
+  warn: '<path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v5M12 18h.01"></path>', refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"></path>',
+  leaf: '<path d="M5 19c0-9 5-14 15-14 0 9-5 14-13 14z"></path><path d="M5 19c2-5 5-8 9-10"></path>', sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>', swap: '<path d="M4 8h13l-3-3M20 16H7l3 3"></path>', img: '<rect x="3" y="4" width="18" height="16" rx="2.5"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M3 17l5-4.5 4 3.5 3-2.5 6 5"></path>'
+};
+const LOGO = '<svg class="ic" viewBox="0 0 36 36" width="22" height="22" aria-hidden="true" style="color:#171600;stroke-width:2.2"><rect width="36" height="36" rx="11" style="fill:#D3F24B;stroke:none"></rect><path d="M9.5 13.5h17"></path><path d="M14.5 13.5v-2a1.6 1.6 0 0 1 1.6-1.6h3.8a1.6 1.6 0 0 1 1.6 1.6v2"></path><path d="M11.2 13.5l1.2 11.6a2 2 0 0 0 2 1.8h7.2a2 2 0 0 0 2-1.8l1.2-11.6"></path><path d="M18 17.4v5.6M15.4 20.6l2.6 2.6 2.6-2.6"></path></svg>';
+const agentLabel = `<div style="display:flex;align-items:center;gap:10px">${LOGO}<span class="kick">Waste Agent</span></div>`;
+
+// ---- static bits ----
+$('strip').innerHTML = CATS.map(c => `<div style="flex:1;background:var(--b-${c[2]})"></div>`).join('');
+$('allbins').innerHTML = CATS.map(c => `<span class="tag" style="--c:var(--${c[2]})"><span class="dot"></span>${c[1]}</span>`).join('');
+
+// ---- theme: follows the system setting, no toggle ----
+const mq = matchMedia('(prefers-color-scheme: light)');
+const applyTheme = () => root.classList.toggle('light', mq.matches);
+applyTheme(); mq.addEventListener('change', applyTheme);
+
+// ---- chips ----
+function chipRow(list) {
+  const row = document.createElement('div'); row.className = 'chiprow'; row.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px';
+  list.forEach(([label, fn, pri]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (pri ? ' pri' : ''); b.innerHTML = (pri ? svg(I.img, 18) : '') + esc(label); b.onclick = () => { if (!busy) fn(); }; row.appendChild(b); });
+  return row;
+}
+const ask = q => { text.value = q; submit(); };
+[['Can I recycle pizza boxes?', () => ask('Can I recycle pizza boxes?')],
+ ['What is e-waste?', () => ask('What is e-waste and where does it go?')], ['How do I dispose of batteries?', () => ask('How do I safely dispose of batteries?')]]
+  .forEach(spec => $('heroChips').appendChild(chipRow([spec]).firstChild));
+
+// ---- attachment ----
+function setPending(f) {
+  if (!f || !f.type.startsWith('image/')) return;
+  pending = f; $('pimg').src = URL.createObjectURL(f); $('pname').textContent = f.name || 'pasted image'; $('attach').style.display = 'flex'; text.focus();
+}
+function clearPending() { pending = null; fileIn.value = ''; $('attach').style.display = 'none'; }
+fileIn.onchange = () => setPending(fileIn.files[0]);
+$('premove').onclick = clearPending;
+$('dz').onclick = () => fileIn.click(); $('dz').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } };
+document.addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith('image/')); if (f) setPending(f); });
+let depth = 0; const veil = $('veil');
+addEventListener('dragenter', e => { e.preventDefault(); depth++; veil.classList.add('on'); });
+addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; veil.classList.remove('on'); } });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => { e.preventDefault(); depth = 0; veil.classList.remove('on'); setPending(e.dataTransfer.files[0]); });
+
+// ---- rendering ----
+function showChat() { hero.style.display = 'none'; chat.style.display = 'flex'; $('main').style.paddingTop = '40px'; }
+function toBottom() { scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }); }
+function block(html) { const d = document.createElement('div'); d.innerHTML = html; chat.appendChild(d); return d; }
+const bytes = n => n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB';
+
+function userBlock(msg, file) {
+  const photo = file ? `<div class="uw" style="position:relative;line-height:0;border-radius:17px;overflow:hidden;background:#2b2923"><img src="${URL.createObjectURL(file)}" alt="uploaded photo" style="width:100%;height:auto;display:block;max-height:420px;object-fit:contain"></div>` : '';
+  const foot = (msg || file) ? `<div style="padding:${file ? '12px 8px 6px' : '6px 10px'};display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap"><span style="font-size:16px">${esc(msg || 'Please sort this.')}</span><span class="mono meta" style="font-size:12px;color:var(--ink3);letter-spacing:.04em">${file ? esc(bytes(file.size)) : ''}</span></div>` : '';
+  return block(`<div style="align-self:flex-end;margin-left:auto;width:100%;max-width:${file ? 480 : 560}px;display:flex;flex-direction:column;gap:8px;align-items:flex-end"><div class="kick">You</div><div style="width:100%;background:var(--card2);border:1px solid var(--line);border-radius:24px 24px 6px 24px;padding:8px">${photo}${foot}</div></div>`);
+}
+function drawBoxes(blk, items) {
+  const wrap = blk.querySelector('.uw'); if (!wrap) return;
+  items.forEach((it, i) => {
+    const [x0, y0, x1, y1] = it.box || [0, 0, 1, 1]; if ((x1 - x0) * (y1 - y0) > 0.9) return;
+    const below = y0 < 0.1, c = `var(--b-${k(it.category)})`;
+    wrap.insertAdjacentHTML('beforeend', `<div style="position:absolute;left:${x0 * 100}%;top:${y0 * 100}%;width:${(x1 - x0) * 100}%;height:${(y1 - y0) * 100}%;border:2.5px solid ${c};border-radius:9px;box-shadow:0 0 0 1px rgba(0,0,0,.45),inset 0 0 0 1px rgba(0,0,0,.25);background:color-mix(in srgb,${c} 10%,transparent)"><span class="mono" style="position:absolute;left:-2.5px;${below ? 'bottom:-24px;border-radius:0 7px 7px 7px' : 'top:-24px;border-radius:7px 7px 7px 0'};height:22px;display:flex;align-items:center;gap:6px;padding:0 8px 0 3px;background:${c};color:#12110E;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;line-height:1"><span style="width:16px;height:16px;border-radius:50%;background:#12110E;color:${c};display:grid;place-items:center;font-size:10px">${i + 1}</span>${esc(nm(it.category))}</span></div>`);
+  });
+  const m = blk.querySelector('.meta'); if (m) m.textContent = (m.textContent ? m.textContent + ' · ' : '') + items.length + (items.length === 1 ? ' item' : ' items') + ' detected';
+}
+function typingBlock() {
+  return block(`<div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">${agentLabel}<div role="status" class="bubble" style="display:flex;flex-direction:column;gap:12px;min-width:min(100%,360px)"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span aria-hidden="true" style="display:inline-flex;gap:5px;align-items:center;height:20px"><span class="dotb"></span><span class="dotb" style="animation-delay:.15s"></span><span class="dotb" style="animation-delay:.3s"></span></span><span class="tmsg" style="color:var(--ink2);font-size:15.5px">Working on it…</span><span class="mono tsec" style="font-size:12.5px;color:var(--ink3)">0s</span></div><ol class="trail" aria-label="What the agent is doing"></ol></div></div>`);
+}
+function onStep(wait, e) {
+  const ol = wait.querySelector('.trail');
+  let li = ol.querySelector(`li[data-id="${CSS.escape(e.id)}"]`);
+  const writing = ol.querySelector('li[data-id="write"]'); if (writing) writing.remove();
+  if (!li) { li = document.createElement('li'); li.dataset.id = e.id; li.innerHTML = '<span class="mk"></span><span class="lbl"></span><span class="det"></span>'; ol.appendChild(li); }
+  li.className = e.state === 'done' ? 'done' : 'run';
+  li.querySelector('.mk').innerHTML = e.state === 'done' ? svg(I.check, 12, 'style="stroke-width:3"') : '';
+  li.querySelector('.lbl').textContent = e.label; li.querySelector('.det').textContent = e.detail || '';
+  if (e.state === 'done') { const w = document.createElement('li'); w.dataset.id = 'write'; w.className = 'run'; w.innerHTML = '<span class="mk"></span><span class="lbl">Writing your plan</span>'; ol.appendChild(w); }
+  wait.querySelector('.tmsg').textContent = 'Sorting your photo…';
+}
+function errorBlock(msg, retry) {
+  const b = block(`<div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">${agentLabel}<div role="alert" style="width:100%;max-width:560px;border-radius:6px 22px 22px 22px;padding:18px 20px;background:color-mix(in srgb,var(--hazard) 9%,var(--card));border:1px solid color-mix(in srgb,var(--hazard) 45%,transparent);display:flex;flex-direction:column;gap:14px"><div style="display:flex;gap:12px;align-items:flex-start"><span style="color:var(--hazard)">${svg(I.warn, 22)}</span><div><div class="disp" style="font-size:20px;font-weight:650;letter-spacing:-.01em;line-height:1.2">That didn't go through</div><div style="margin-top:4px;color:var(--ink2);font-size:15px">${esc(msg)} Your message is still here, so nothing was lost.</div></div></div><div class="act" style="display:flex;flex-wrap:wrap;gap:10px"></div></div></div>`);
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.innerHTML = svg(I.refresh, 18) + 'Try again'; btn.onclick = () => { b.remove(); retry(); };
+  b.querySelector('.act').appendChild(btn);
+}
+function binParts(s) {
+  const [main, dash] = String(s).split(' - '); const m = main.match(/^(.*?)\s*\((.*)\)\s*(.*)$/);
+  return m ? { name: m[1], note: ((m[2] + ' ' + m[3]).trim() + (dash ? '. ' + dash : '')) } : { name: main, note: dash || '' };
+}
+function cellBar(label, pct, color, delta, base) {
+  const full = Math.floor(pct / 5), rem = pct / 5 - full, cells = [];
+  for (let i = 0; i < 20; i++) {
+    const d = 'animation-delay:' + (base + i * 38) + 'ms';
+    cells.push(i < full ? `background:${color};--o:1;${d}` : (i === full && rem > .05 ? `background:${color};--o:${(.25 + rem * .6).toFixed(2)};${d}` : `background:var(--line);--o:1;${d}`));
+  }
+  return `<div><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:14.5px;color:var(--ink2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">${label}${delta ? `<span class="ovp" style="height:22px;font-size:11px">${esc(delta)}</span>` : ''}</span><span class="disp" style="font-size:32px;font-weight:700;letter-spacing:-.03em;line-height:1">≈${Math.round(pct)}%</span></div><div role="img" aria-label="${esc(label)} about ${Math.round(pct)} percent" style="display:flex;gap:3px;margin-top:10px">${cells.map(c => `<div class="cell" style="${c}"></div>`).join('')}</div></div>`;
+}
+function itemCard(it, n) {
+  const c = k(it.category), g = k(it.cnn_category), over = it.category !== it.cnn_category, conf = Math.round(it.cnn_confidence * 100);
+  const lvl = it.contamination === 'heavy' ? 3 : it.contamination === 'light' ? 1 : 0;
+  const dots = [1, 2, 3].map(i => `<span style="width:7px;height:7px;border-radius:50%;background:${i <= lvl ? 'var(--ink)' : 'var(--line2)'}"></span>`).join('');
+  return `<div style="--c:var(--${c});--g:var(--${g});display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:20px;background:var(--card2);border:1px solid var(--line);border-top:4px solid var(--c)">
+    <div style="display:flex;align-items:center;gap:10px"><span class="num">${n}</span><span class="disp" style="font-size:20px;font-weight:650;line-height:1.15;letter-spacing:-.01em;flex:1;min-width:0">${esc(it.name)}</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px"><span class="tag"><span class="dot"></span>${esc(nm(it.category))}</span>
+      ${over ? `<span class="ovp">${svg(I.swap, 14)}Agent override</span>` : ''}
+      ${lvl ? `<span class="pill"><span aria-hidden="true" style="display:inline-flex;gap:3px">${dots}</span>${it.contamination === 'heavy' ? 'Heavy' : 'Light'} contamination</span>` : ''}
+      ${it.category === 'hazardous' ? '<span class="pill">Beta detection</span>' : ''}</div>
+    <div><div class="mono" style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase"><span>ResNet50 guess</span><span>${conf}%</span></div>
+      <div style="height:6px;border-radius:99px;background:var(--line);margin-top:7px;overflow:hidden"><div style="width:${conf}%;height:100%;border-radius:99px;background:var(--g)"></div></div>
+      <div class="mono" style="margin-top:6px;font-size:11px;color:var(--ink3);letter-spacing:.03em">${(it.top_k || []).map(t => esc(nm(t.category)) + ' ' + Math.round(t.confidence * 100) + '%').join(' · ')}</div>
+      <div style="margin-top:8px;font-size:14px;color:var(--ink2)">${over ? `<span style="text-decoration:line-through;text-decoration-thickness:1.5px">${esc(nm(it.cnn_category))}</span> <span aria-hidden="true">→</span> <b style="color:var(--ink)">${esc(nm(it.category))}</b> after agent check` : `${esc(nm(it.cnn_category))} · agent agrees`}</div></div>
+    ${it.cam ? `<div style="display:flex;gap:12px;align-items:center;padding-top:12px;border-top:1px dashed var(--line2)"><img src="${it.cam}" alt="Heatmap of where the model looked" width="72" height="72" style="width:72px;height:72px;border-radius:12px;object-fit:cover;flex:none"><div><div class="lab">Where the model looked</div><div style="font-size:13.5px;line-height:1.35;color:var(--ink2)">Warm colors mark the pixels that pushed the ResNet50 towards its guess.</div></div></div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px dashed var(--line2)"><div><div class="lab">Breaks down</div><div style="font-size:14px;line-height:1.35">${esc(it.takes || '')}</div></div><div><div class="lab">Avoid</div><div style="font-size:14px;line-height:1.35">${esc(it.avoid || '')}</div></div></div></div>`;
+}
+const TOOLNAME = { analyze_image: 'detect + classify', get_disposal_guide: 'disposal guide', optimize_recycling: 'optimize' };
+function agentBlock(j) {
+  const items = j.items || [], opt = j.optimization, hazard = items.some(i => i.category === 'hazardous');
+  const body = md(j.answer || '');
+  let h = `<div style="display:flex;flex-direction:column;gap:20px">${agentLabel}`;
+  if (!items.length) {
+    h += `<div class="bubble prose" style="max-width:720px">${body}</div>`;
+  } else {
+    const bins = Object.keys(j.bins || {}).length;
+    const head = `${items.length} ${items.length === 1 ? 'item' : 'items'}, ${bins} ${bins === 1 ? 'bin' : 'bins'}.`;
+    if (hazard) h += `<div style="border-radius:24px;overflow:hidden;border:1px solid color-mix(in srgb,var(--hazard) 50%,transparent);background:color-mix(in srgb,var(--hazard) 9%,var(--card))"><div aria-hidden="true" style="height:12px;background:repeating-linear-gradient(-45deg,var(--b-hazard) 0 12px,#12110E 12px 24px)"></div><div style="padding:22px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;gap:14px;align-items:center"><span style="width:46px;height:46px;border-radius:14px;background:var(--hazard);color:var(--onc);display:grid;place-items:center;flex:none">${svg(I.warn, 24)}</span><div><div class="kick" style="color:var(--hazard)">Safety first</div><h2 class="disp h2" style="margin:2px 0 0;font-size:30px;line-height:1.05;letter-spacing:-.025em;font-weight:700">Don't bin it. Don't pour it.</h2></div></div><div class="prose">${body}</div></div></div>`;
+    else h += `<div style="display:flex;flex-direction:column;gap:14px;max-width:720px"><h2 class="disp h2" style="margin:0;font-size:36px;line-height:1.05;letter-spacing:-.03em;font-weight:700">${head}</h2><div class="prose">${body}</div></div>`;
+    h += `<section class="card" aria-label="What I found"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 class="kick" style="margin:0;font-weight:500"><span style="color:var(--ov)">01</span> / What I found</h3><span class="kick" style="text-transform:none;letter-spacing:.04em">${items.length} ${items.length === 1 ? 'item' : 'items'} · classifier + agent check</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px">${items.map((it, i) => itemCard(it, i + 1)).join('')}</div></section>`;
+    if (opt) {
+      const MAPQ = { battery: 'battery recycling drop-off', hazardous: 'household hazardous waste drop-off', 'e-waste': 'electronics recycling drop-off', textile: 'clothing recycling bank', glass: 'glass recycling bank' };
+      const binRows = Object.entries(j.bins || {}).map(([b, idxs]) => {
+        const p = binParts(b), first = items[idxs[0]] || items[0];
+        const chips = idxs.map(ix => { const it = items[ix]; return `<span style="--c:var(--${k(it.category)});display:inline-flex;align-items:center;gap:7px;padding:3px 10px 3px 3px;border-radius:99px;border:1px solid var(--line2);font-size:13px"><span class="num" style="width:22px;height:22px;font-size:11px">${ix + 1}</span>${esc(it.name)}</span>`; }).join('');
+        const q = MAPQ[first.category], link = q ? `<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}" target="_blank" rel="noopener noreferrer">Find a drop-off near me ↗</a>` : '';
+        return `<div style="--c:var(--${k(first.category)});display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px dashed var(--line2)"><svg viewBox="0 0 40 44" width="40" height="44" aria-hidden="true" style="flex:none"><rect x="3" y="9" width="34" height="8" rx="3.5" style="fill:var(--c)"></rect><path d="M15 9V7a2.4 2.4 0 0 1 2.4-2.4h5.2A2.4 2.4 0 0 1 25 7v2" style="fill:none;stroke:var(--c);stroke-width:2.2;stroke-linecap:round"></path><path d="M7 17l2.2 21a3 3 0 0 0 3 2.7h15.6a3 3 0 0 0 3-2.7L33 17z" style="fill:var(--card2);stroke:var(--line2);stroke-width:1.8;stroke-linejoin:round"></path><path d="M16 22v13M24 22v13" style="stroke:var(--line2);stroke-width:1.8;stroke-linecap:round;fill:none"></path></svg><div style="min-width:0;display:flex;flex-direction:column;gap:8px"><div><div class="disp" style="font-size:18px;font-weight:650;letter-spacing:-.01em;line-height:1.2">${esc(p.name)}</div>${p.note ? `<div style="font-size:13.5px;color:var(--ink2);margin-top:2px">${esc(p.note)}</div>` : ''}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>${link}</div></div>`;
+      }).join('');
+      const delta = opt.improvement_pct_points > 0 ? '+' + Math.round(opt.improvement_pct_points) + ' pts' : '';
+      const preps = opt.prep_actions.length ? opt.prep_actions.map(a => `<li style="display:flex;gap:12px;align-items:flex-start;font-size:14.5px;line-height:1.4"><span aria-hidden="true" style="width:22px;height:22px;border-radius:7px;background:var(--btn);color:var(--onbtn);display:inline-grid;place-items:center;flex:none">${svg(I.check, 14, 'style="stroke-width:2.4"')}</span><span>${esc(a)}</span></li>`).join('') : '<li style="font-size:14.5px;color:var(--ink2)">No extra prep needed.</li>';
+      h += `<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch"><section class="card" aria-label="Which bin" style="flex:1 1 300px;min-width:0"><h3 class="kick" style="margin:0;font-weight:500"><span style="color:var(--ov)">02</span> / Which bin</h3><div style="display:flex;flex-direction:column">${binRows}</div></section>
+        <section class="card" aria-label="Recycling optimization" style="flex:1.5 1 380px;min-width:0"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h3 class="kick" style="margin:0;font-weight:500"><span style="color:var(--ov)">03</span> / Recycling optimization</h3><span class="pill" style="height:24px;font-size:12px">${svg(I.info, 14)}Estimate</span></div>
+          <div style="display:flex;flex-direction:column;gap:20px">${cellBar('Recovered as-is', opt.recovered_share_as_is_pct, 'var(--ink3)', '', 0)}${cellBar('After prep steps', opt.recovered_share_after_prep_pct, 'var(--fill)', delta, 450)}</div>
+          <div style="padding-top:16px;border-top:1px dashed var(--line2);display:flex;flex-direction:column;gap:12px"><div class="lab" style="margin:0">Prep steps</div><ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">${preps}</ul></div>
+          <div style="display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--fill) 12%,var(--card2))"><span style="color:var(--ov)">${svg(I.leaf, 22)}</span><span style="font-size:14.5px;line-height:1.35"><b>≈ ${opt.co2_avoided_kg_after_prep} kg CO₂ avoided</b> with prep (${opt.co2_avoided_kg_as_is} kg as-is). <span style="color:var(--ink2)">Estimate from typical item weights, not a measurement.</span></span></div></section>`;
+      if (hazard) h += `<section class="card" aria-label="Detection note" style="flex:1.2 1 320px;min-width:0;border-style:dashed;border-color:var(--line2);background:transparent"><div style="display:flex;gap:12px;align-items:flex-start"><span style="color:var(--ink2)">${svg(I.info, 22)}</span><div><div class="disp" style="font-size:18px;font-weight:650;letter-spacing:-.01em">Hazardous detection is still in testing</div><p style="margin:6px 0 0;font-size:14.5px;color:var(--ink2)">I've only been checked on a handful of hazardous-item photos, so treat my label as a hint, not a verdict. If the container shows a flame, skull or corrosion symbol, handle it as hazardous either way.</p></div></div></section>`;
+      h += '</div>';
+    }
+  }
+  const counted = {}; (j.tool_calls || []).forEach(t => { const n = TOOLNAME[t.tool] || t.tool; counted[n] = (counted[n] || 0) + 1; });
+  const steps = Object.entries(counted).map(([n, c]) => esc(n) + (c > 1 ? ' ×' + c : '')).join('<span aria-hidden="true"> › </span>');
+  if (steps) h += `<div class="mono" style="font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)">Agent steps ▸ ${steps}</div>`;
+  h += '<div class="follow"></div>';
+  h += `<div style="display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink3);line-height:1.45"><span style="margin-top:1px">${svg(I.info, 16)}</span><span>General guidance. Disposal rules vary by area, so check your local rules. Figures marked ≈ are estimates.</span></div></div>`;
+  const b = block(h);
+  const sugg = (j.suggestions || []).map(q => [q, () => ask(q)]);
+  if (sugg.length) { b.querySelector('.follow').innerHTML = '<div class="kick" style="margin-bottom:10px">Ask next</div>'; b.querySelector('.follow').appendChild(chipRow(sugg)); }
+  return b;
+}
+
+// ---- session score ----
+let S = { items: 0, grams: 0, rec: 0, co2: 0 };
+function addStats(j) {
+  const o = j.optimization; if (!o || !j.items || !j.items.length) return;
+  S.items += j.items.length; S.grams += o.total_weight_g; S.rec += o.recovered_share_after_prep_pct / 100 * o.total_weight_g; S.co2 += o.co2_avoided_kg_after_prep;
+  $('s-items').textContent = S.items; $('s-co2').textContent = '≈' + S.co2.toFixed(2); $('s-rec').textContent = Math.round(100 * S.rec / (S.grams || 1)) + '%';
+  $('stats').style.display = 'block';
+}
+
+// ---- sending ----
+async function submit(retry) {
+  if (busy) return;
+  const msg = retry ? last.msg : text.value.trim(), file = retry ? last.file : pending;
+  if (!msg && !file) return;
+  busy = true; send.disabled = true; showChat();
+  let ub;
+  if (!retry) { ub = userBlock(msg, file); last = { msg, file, ub }; } else ub = last.ub;
+  text.value = ''; clearPending(); toBottom();
+  const wait = typingBlock(), t0 = Date.now();
+  const timer = setInterval(() => { wait.querySelector('.tsec').textContent = Math.round((Date.now() - t0) / 1000) + 's'; }, 1000);
+  try {
+    const fd = new FormData(); fd.append('message', msg); fd.append('session_id', sessionId); if (file) fd.append('file', file);
+    const r = await fetch('/api/chat/stream', { method: 'POST', body: fd });
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || r.statusText); }
+    const reader = r.body.getReader(), dec = new TextDecoder(); let buf = '', j = null;
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        const e = JSON.parse(line);
+        if (e.type === 'step') onStep(wait, e); else if (e.type === 'error') throw new Error(e.detail); else if (e.type === 'done') j = e;
+      }
+    }
+    if (!j) throw new Error('The connection ended early.');
+    sessionId = j.session_id; wait.remove();
+    if (j.items && j.items.length) drawBoxes(ub, j.items);
+    addStats(j);
+    agentBlock(j).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) { wait.remove(); errorBlock(String(err.message || err), () => submit(true)); toBottom(); }
+  clearInterval(timer); busy = false; send.disabled = false; text.focus();
+}
+$('form').onsubmit = e => { e.preventDefault(); submit(); };
+$('reset').onclick = () => { if (busy) return; sessionId = ''; S = { items: 0, grams: 0, rec: 0, co2: 0 }; $('stats').style.display = 'none'; chat.innerHTML = ''; chat.style.display = 'none'; hero.style.display = 'flex'; $('main').style.paddingTop = '44px'; clearPending(); scrollTo({ top: 0 }); };
+</script>
+</body>
+</html>
