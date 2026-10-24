@@ -6,3 +6,4 @@ data/real_world/results*.json
 weights_nb/
 _*.jpg
 sid
+start_demo.bat
