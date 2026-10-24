@@ -17,4 +17,5 @@ COPY --chown=user weights ./weights
 
 USER user
 EXPOSE 7860
-CMD ["python", "-m", "uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "7860"]
+# Cloud hosts (Railway, Cloud Run) pass the port in $PORT; 7860 is the default
+CMD ["sh", "-c", "python -m uvicorn src.api:app --host 0.0.0.0 --port ${PORT:-7860}"]
