@@ -2,6 +2,7 @@
 import base64
 import io
 import json
+import os
 import threading
 from functools import lru_cache
 from pathlib import Path
@@ -12,6 +13,12 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import models, transforms
+
+# On a shared cloud host PyTorch sees every core of the big machine but the container gets only 1-2, so too many
+# threads make inference crawl (about 75 s per image on Railway). Cap them there; locally keep PyTorch's default.
+_threads = int(os.getenv("TORCH_THREADS") or (2 if any(k.startswith("RAILWAY_") for k in os.environ) else 0))
+if _threads:
+    torch.set_num_threads(_threads)
 
 WEIGHTS = Path(__file__).resolve().parent.parent / "weights"
 _tf = transforms.Compose([

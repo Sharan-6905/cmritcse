@@ -21,6 +21,8 @@ class PlanItem(BaseModel):
     category: str          # cardboard, glass, metal, paper, plastic, trash, organic, battery, e-waste, textile, hazardous
     contamination: str     # none, light (food residue, liquid), heavy (grease-soaked, wet, mixed materials)
     weight_g: float = 0    # 0 = unknown, use the typical weight
+    id: int = 0            # the item's id from analyze_image (0 = unknown)
+    tip: str = ""          # one specific tip (max 20 words) to dispose of, reuse or decompose this item more efficiently
 
 
 def _recovered_fraction(category: str, contamination: str, fixed: bool) -> float:
@@ -55,7 +57,7 @@ def optimize(items: list[PlanItem]) -> dict:
         co2_as_is += factor * weight / 1000 * a; co2_fixed += factor * weight / 1000 * f
         bin_name = knowledge.GUIDES.get(cat, {}).get("bin", "General waste")
         bins.setdefault(bin_name, []).append(it.name)
-        rows.append({"item": it.name, "category": cat, "contamination": it.contamination, "weight_g": round(weight),
+        rows.append({"id": it.id, "tip": it.tip, "item": it.name, "category": cat, "contamination": it.contamination, "weight_g": round(weight),
                      "weight_source": "stated/estimated" if it.weight_g > 0 else "typical value",
                      "recovered_as_is": round(a, 2), "recovered_after_prep": round(f, 2)})
     pct = lambda x: round(100 * x / total_g, 1) if total_g else 0.0

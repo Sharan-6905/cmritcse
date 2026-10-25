@@ -10,6 +10,7 @@ the CNN's six classes, when confidence is low, or when the CNN looks wrong.
 import io
 import json
 import os
+from typing import Literal
 import re
 import tempfile
 from pathlib import Path
@@ -35,17 +36,19 @@ _RETRIABLE = ("503", "429", "500", "404", "UNAVAILABLE", "RESOURCE_EXHAUSTED", "
 def _retriable(e: Exception) -> bool:
     text = f"{type(e).__name__} {e}"
     return any(k in text for k in _RETRIABLE)
-MAX_ITEMS = 6
+MAX_ITEMS = 8
+CATEGORIES = Literal["cardboard", "glass", "metal", "paper", "plastic", "trash", "organic", "battery", "e-waste", "textile", "hazardous"]
+MATERIAL_HINTS = 'Material rules: pens, markers, highlighters, pen caps, plastic toys, combs and plastic cutlery are plastic. Phones, mice, keyboards, chargers, cables, headphones, remotes, calculators and other small electronics are e-waste. Paper, notebooks, sticky notes, printed pages, envelopes and newspapers are paper (thermal receipts and used tissues are trash). Boxes and cartons are cardboard. Glass bottles and jars are glass. Cans, foil, metal lids and metal cutlery are metal. Food scraps and peels are organic. Batteries are battery. Clothes and fabric are textile. Paint, solvents, chemicals, aerosols, bulbs and tubes, medicines, needles and oil are hazardous. Plastic bags, wrappers, styrofoam, ceramics and diapers are trash.'
 
 SYSTEM = """You are a friendly waste-sorting assistant that chats with the user.
 If the user has not uploaded an image yet, greet them briefly and ask them to upload a photo of the waste they want to sort. You can also answer general waste and recycling questions.
 
 When an image arrives:
-1. Call analyze_image. It detects every distinct item and runs the trained vision model (CNN) on each one. The CNN only knows: cardboard, glass, metal, paper, plastic, trash.
-2. Check each result against the photo yourself. Override the CNN when confidence is below 0.6, when the item is not one of its six materials (food -> organic, batteries -> battery, electronics -> e-waste, clothing -> textile, paint / solvents / chemicals / pesticides / bleach / aerosols / bulbs and tubes / medicines / needles / motor oil -> hazardous, anything else -> trash), or when it is clearly wrong. Say when you override it and why.
+1. Call analyze_image. It detects every distinct item and returns, for each one, the trained CNN's answer (cnn_category, which only knows cardboard, glass, metal, paper, plastic, trash and can be confidently wrong), Gemini's own reading of the item (gemini_category, gemini_contamination) and a suggested_category that combines them.
+2. Use suggested_category as the final category unless the photo clearly contradicts it; the CNN is only a second opinion. Use gemini_contamination as the contamination level unless the user says otherwise. If the final category differs from the CNN's, say so in one short clause. Material rules: pens, markers, highlighters, pen caps, plastic toys, combs and plastic cutlery are plastic. Phones, mice, keyboards, chargers, cables, headphones, remotes, calculators and other small electronics are e-waste. Paper, notebooks, sticky notes, printed pages, envelopes and newspapers are paper (thermal receipts and used tissues are trash). Boxes and cartons are cardboard. Glass bottles and jars are glass. Cans, foil, metal lids and metal cutlery are metal. Food scraps and peels are organic. Batteries are battery. Clothes and fabric are textile. Paint, solvents, chemicals, aerosols, bulbs and tubes, medicines, needles and oil are hazardous. Plastic bags, wrappers, styrofoam, ceramics and diapers are trash.
 3. After analyze_image returns, make ALL remaining tool calls together in ONE step (parallel calls, never one after another): get_disposal_guide once for each distinct final category, plus optimize_recycling. Decide the final categories and contamination first, then call them all at once. Valid categories: cardboard, glass, metal, paper, plastic, trash, organic, battery, e-waste, textile, hazardous. For hazardous items always name the exact material (for example paint thinner, fluorescent tube, medicine) and start the advice with a clear safety warning.
 4. Mention visible contamination (food, grease, liquids, mixed materials) and how it changes disposal.
-5. optimize_recycling is called ONCE, in that same step, with every item (name, final category, contamination, weight_g=0 unless the user stated it). Its numbers are the optimization result: never compute or invent your own.
+5. optimize_recycling is called ONCE, in that same step, with every item, passing each item's id exactly as analyze_image gave it (name, final category, contamination, weight_g=0 unless the user stated it, and tip = one specific tip of at most 20 words for disposing of, reusing or decomposing THAT item more efficiently and with less environmental harm, for example how to compost it, what to separate first, or how to reuse it). Its numbers are the optimization result: never compute or invent your own.
 
 Reply format. The app already shows per-item cards (category, breakdown time, what to avoid), the bin list and the optimization numbers, so do NOT repeat them. Write one short lead sentence, then a numbered list of at most 5 practical steps, most important first, each naming the bin it ends in. For hazardous items put the safety warning first. Mention any override of the CNN in one short clause. Stay under about 110 words in total. Local rules vary: say so once. Never invent tool results. For follow-up questions, answer from the conversation; only re-run tools for a new image.
 
@@ -57,6 +60,8 @@ The three questions are what this user is most likely to ask next, specific to t
 class Item(BaseModel):
     name: str
     box_2d: list[int]
+    category: CATEGORIES
+    contamination: Literal["none", "light", "heavy"]
 
 
 class ChatSession:
@@ -105,7 +110,7 @@ class ChatSession:
         self._emit("detect", "Detecting items", "done", f"{len(crops)} found")
         self._emit("classify", "Classifying with ResNet50", "start")
         items = []
-        for i, (name, crop, box) in enumerate(crops, 1):
+        for i, (name, crop, box, gcat, gcon) in enumerate(crops, 1):
             with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
                 crop.save(tmp, "JPEG")
             try:
@@ -114,7 +119,9 @@ class ChatSession:
                 Path(tmp.name).unlink(missing_ok=True)
             self.cams[i] = r.pop("cam", None)  # heatmap goes to the UI only, never to the model
             items.append({"id": i, "name": name, "box": box, "cnn_category": r["category"],
-                          "cnn_confidence": r["confidence"], "top_k": r["top_k"]})
+                          "cnn_confidence": r["confidence"], "top_k": r["top_k"],
+                          "gemini_category": gcat, "gemini_contamination": gcon,
+                          "suggested_category": self._combine(r["category"], gcat)})
         self._emit("classify", "Classifying with ResNet50", "done", f"{len(items)} checked")
         self.calls.append({"tool": "analyze_image", "result": items})
         return {"items": items}
@@ -139,13 +146,19 @@ class ChatSession:
         if self.on_event:
             self.on_event({"type": "step", "id": step, "label": label, "state": state, "detail": detail})
 
+    @staticmethod
+    def _combine(cnn_category: str, gemini_category: str) -> str:
+        """Gemini sees the whole scene and knows all 11 categories; the CNN only knows 6 clean-photo materials. Trust Gemini, fall back to the CNN."""
+        return gemini_category or cnn_category
+
     def _detect_and_crop(self):
         full = Image.open(self.image_path).convert("RGB")
         try:
             resp = self._generate(
                 contents=[self._part(self.image_path),
-                          f"Detect each distinct waste item in this photo (at most {MAX_ITEMS}). "
-                          "Return a short name and box_2d as [ymin, xmin, ymax, xmax] normalised to 0-1000."],
+                          f"Detect every distinct waste item in this photo (at most {MAX_ITEMS}), including small objects (pens, cables), large items (boxes, bags, containers) and food leftovers. "
+                          "For each item return: a short specific name; box_2d as [ymin, xmin, ymax, xmax] normalised to 0-1000; its category; "
+                          "and contamination (none, light = food or liquid residue, heavy = grease-soaked, wet or mixed materials). " + MATERIAL_HINTS],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json", response_schema=list[Item], temperature=0),
             )
@@ -163,8 +176,8 @@ class ChatSession:
                    int((x1 + pad_x) / 1000 * w), int((y1 + pad_y) / 1000 * h))
             box = (max(0, box[0]), max(0, box[1]), min(w, box[2]), min(h, box[3]))
             if box[2] - box[0] >= 16 and box[3] - box[1] >= 16:
-                out.append((it.name, full.crop(box), [round(x0 / 1000, 3), round(y0 / 1000, 3), round(x1 / 1000, 3), round(y1 / 1000, 3)]))
-        return out or [("whole image", full, [0, 0, 1, 1])]
+                out.append((it.name, full.crop(box), [round(x0 / 1000, 3), round(y0 / 1000, 3), round(x1 / 1000, 3), round(y1 / 1000, 3)], it.category, it.contamination))
+        return out or [("whole image", full, [0, 0, 1, 1], "", "none")]
 
     @staticmethod
     def _part(path: str) -> types.Part:
@@ -217,19 +230,26 @@ class ChatSession:
         """Join detection, CNN and optimizer results for the UI cards."""
         analyzed = next((c["result"] for c in self.calls if c["tool"] == "analyze_image"), [])
         plan = next((c["result"] for c in self.calls if c["tool"] == "optimize_recycling"), None)
-        final: dict[str, list] = {}
-        for r in (plan or {}).get("items", []):
-            final.setdefault(r["item"].lower(), []).append(r)
+        plan_rows = (plan or {}).get("items", [])
+        by_id = {r["id"]: r for r in plan_rows if r.get("id")}
+        by_name: dict[str, list] = {}
+        for r in plan_rows:
+            by_name.setdefault(r["item"].lower(), []).append(r)
         items = []
-        for it in analyzed:
-            rows = final.get(it["name"].lower())
-            row = rows.pop(0) if rows else None
-            cat = row["category"] if row else it["cnn_category"]
+        for idx, it in enumerate(analyzed):
+            # the agent may rename an item, so match by id first, then name, then position
+            row = by_id.get(it["id"])
+            if row is None and by_name.get(it["name"].lower()):
+                row = by_name[it["name"].lower()].pop(0)
+            if row is None and len(plan_rows) == len(analyzed):
+                row = plan_rows[idx]
+            cat = row["category"] if row else it.get("suggested_category") or it["cnn_category"]
             takes, avoid = knowledge.SHORT.get(cat, ("", ""))
             items.append({"name": it["name"], "box": it["box"], "cnn_category": it["cnn_category"],
                           "cnn_confidence": it["cnn_confidence"], "category": cat,
                           "top_k": it["top_k"], "cam": self.cams.get(it["id"]),
-                          "contamination": row["contamination"] if row else "none",
+                          "contamination": row["contamination"] if row else it.get("gemini_contamination", "none"),
+                          "tip": row.get("tip", "") if row else "", "gemini_category": it.get("gemini_category", ""),
                           "takes": takes, "avoid": avoid})
         bins: dict[str, list[int]] = {}
         for idx, it in enumerate(items):
